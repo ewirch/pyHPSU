@@ -20,34 +20,33 @@ class CanPI(object):
         self.hpsu = hpsu
         try:
             # TODO evaluate can.ThreadSafeBus
-            self.bus = can.interface.Bus(channel='can0', bustype='socketcan_native')
+            self.bus = can.interface.Bus(channel='can0', bustype='socketcan')
         except Exception:
             self.hpsu.logger.exception('Error opening bus can0')
             sys.exit(os.EX_CONFIG)
-            
+
         config = configparser.ConfigParser()
         iniFile = '%s/%s.conf' % (self.hpsu.pathCOMMANDS, "pyhpsu")
         config.read(iniFile)
         self.timeout = float(self.get_with_default(config=config, section="CANPI", name="timeout", default=0.05))
         self.retry = float(self.get_with_default(config=config, section="CANPI", name="retry", default=15))
-            
-    
+
+
     def get_with_default(self, config, section, name, default):
         if "config" not in config.sections():
             return default
-        
         if config.has_option(section,name):
             return config.get(section,name)
         else:
             return default
-            
+
     def __del__(self):
         pass
         """try:
             self.bus.shutdown()
         except Exception:
             self.hpsu.logger.exception('Error shutdown canbus')"""
-    
+
     def sendCommandWithID(self, cmd, setValue=None, priority=1):
         if setValue:
             receiver_id = 0x680
@@ -79,13 +78,13 @@ class CanPI(object):
             if cmd["type"] == "value":
                 setValue = int(setValue)
                 command = command+" %02X %02X" % (setValue >> 8, setValue & 0xff)
-            
+
         msg_data = [int(r, 16) for r in command.split(" ")]
         notTimeout = True
         i = 0
         #print("sent: " + str(command))
         try:
-            msg = can.Message(arbitration_id=receiver_id, data=msg_data, extended_id=False, dlc=7)
+            msg = can.Message(arbitration_id=receiver_id, data=msg_data, is_extended_id=False, dlc=7)
             self.bus.send(msg)
             self.hpsu.logger.debug("CanPI, %s sent: %s" % (cmd['name'], msg))
 
@@ -101,7 +100,7 @@ class CanPI(object):
             rcBUS = None
             try:
                 rcBUS = self.bus.recv(timeout)
-                
+
             except Exception:
                 self.hpsu.logger.exception('Error recv')
 
@@ -122,5 +121,5 @@ class CanPI(object):
                     self.hpsu.logger.error('CanPI %s, msg not sync, timeout' % cmd['name'])
                     notTimeout = False
                     rc = "KO"
-        
+
         return rc
