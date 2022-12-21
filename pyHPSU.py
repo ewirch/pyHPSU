@@ -24,12 +24,12 @@ SocketPort = 7060
 def main(argv):
     cmd = []
     port = None
-    driver = "PYCAN"
+    driver = ""
     verbose = "1"
     show_help = False
     output_type = ""
     upload = False
-    lg_code = "EN"
+    lg_code = ""
     languages = ["EN", "IT", "DE"]
     logger = None
     pathCOMMANDS = "/etc/pyHPSU"
@@ -174,8 +174,12 @@ def main(argv):
 
     else:
         conf_file=default_conf_file
+    if driver=="":
+        driver="PYCAN"
     if output_type=="":
         output_type="JSON"
+    if lg_code=="":
+        lg_code="EN"
     #
     # now we should have all options...let's check them
     #
